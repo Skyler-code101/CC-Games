@@ -1434,7 +1434,7 @@ function Chess.GetMoves(piece, Layout, moveHistory)
 end
 
 function Chess.PawnReachedOtherSide(piece,Layout)
-    if piece.color == "W" and piece.y == 1 then
+    if piece.color == "W" and piece.y == 1 and piece.pieceName == "pawn" then
         local init = 0
         for key, value in pairs(Layout) do
             if value.pieceName == "queen" and piece.color == value.color then
@@ -1443,7 +1443,7 @@ function Chess.PawnReachedOtherSide(piece,Layout)
         end
         piece.pieceName = "queen"
         piece.init = init
-    elseif piece.color == "B" and piece.y == 8 then
+    elseif piece.color == "B" and piece.y == 8  and piece.pieceName == "pawn" then
         local init = 0
         for key, value in pairs(Layout) do
             if value.pieceName == "queen" and piece.color == value.color then

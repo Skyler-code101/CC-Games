@@ -15,6 +15,7 @@ function listen()
             local fileData = {}
             fileData.record = message.record
             fileData.BetAmount = message.BetAmount
+            fileData.AccountIDS = message.AccountIDS
             file.write(textutils.serialise(fileData))
             file.close()
             local sender = {}

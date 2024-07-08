@@ -192,7 +192,7 @@ function b()
                     cx = move.captures.x
                     cy = move.captures.y
                     SavedValues.captures.y = move.captures.y
-                    SavedValues.captures.x = move.captures.xw
+                    SavedValues.captures.x = move.captures.x
 
                 else
                     cx = xt
@@ -210,6 +210,7 @@ function b()
                 if cPiece.pieceName ~= "none" then
                     cPiece.pieceName = "none"
                     cPiece.init = 0
+                    cPiece.color = nil
                     if speaker and Config.Sound == true then
                         speaker.playSound("entity.generic.explode",.5)
                     end
@@ -301,7 +302,9 @@ function c()
                                 playersturn = "W"
                             end
                             print("Rewound")
-                            printOnPrinter("Rewound Move #"..#Moves)
+                            if BetB then
+                                printOnPrinter("Rewound Move #"..#Moves)
+                            end
                             break
                         end
                     end
@@ -418,9 +421,9 @@ function e()
             term.setCursorPos(1,1)
             print("Game Ready Press Any Button To start")
             os.pullEvent("key")
-            print("Game Starting")
             printer.newPage()
             printOnPrinter("No Bets")
+            print("Game Starting")
             GameStarted = true
             print("Game Running")
     
@@ -537,6 +540,28 @@ function terminateinfo()
         if key == keys.f4 and GameStarted == true then
             print("Ending Round As Draw")
             printOnPrinter("Draw")
+            local filesend = {}
+            filesend.method = "Input"
+            filesend.game = "Chess"
+            filesend.record = Moves
+            if BetB then
+                filesend.BetAmount = {}
+                filesend.BetAmount.B = BetB
+                filesend.BetAmount.W = BetW
+                filesend.BetAmount.Total = BetW + BetB
+                filesend.AccountIDS = AccountIDS
+            end
+            rednet.send(rednet.lookup("RecordService","RecordService"),filesend,"RecordService")
+            local id, message
+            repeat
+                id, message = rednet.receive("RecordService")
+            until message.reply == "Chess" and message.success == true
+            printOnPrinter("Record ID = "..message.RecordID)
+            if BetB then
+                printOnPrinter("Chips To Black = "..BetB.."C")
+                printOnPrinter("Chips To White = "..BetW.."C")
+            end
+            
             Moves = {}
             printer.endPage()
             local file = fs.open("pieceLayout", "r")

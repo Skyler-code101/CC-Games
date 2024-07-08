@@ -141,6 +141,7 @@ function Sim()
             print("Sim Ready Click The Screen For Next Frame")
             for key, value in pairs(SimFile.record) do
                 os.pullEvent("monitor_touch")
+                frame = key.."/"..#SimFile.record
                 local oldPiece, oldIndex = chessAlgorithm.getPieceAt(value.originalSpaceX,value.originalSpaceY, pieceLayout)
                 local newPiece, newIndex = chessAlgorithm.getPieceAt(value.newSpaceX, value.newSpaceY, pieceLayout)
                 
@@ -169,7 +170,7 @@ function Sim()
                 if queenPiece ~= nil then
                     oldPiece = queenPiece
                 end
-                if key == #SimFile.record and Validizeable == false then
+                if key == #SimFile.record and Validizeable == false and SimFile.BetAmount then
                     Validizeable = true
                 end
             end
