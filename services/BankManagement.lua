@@ -2,6 +2,7 @@
 local myURL = "wss://stargate-payment-server-839ace3f26f9.herokuapp.com"
 peripheral.find("modem", rednet.open)
 
+local highscoreServer = rednet.lookup("highscore","highscoreService")
 local completion = require "cc.completion"
 function a()
     local sellerdata = {}
@@ -90,6 +91,7 @@ function messageRecive()
             l.handler = datar.computer
             l.fulllink = dataw.fulllink
             rednet.send(id,l,"PaymentServer")
+            rednet.send(highscoreServer,{category = "chips", player = datar.playername, score = 10}, "highscore")
             
         elseif datar.status == "charge"  then
             local datae = {}
@@ -107,6 +109,7 @@ function messageRecive()
                     l.handler = datar.computer
                     l.ReplyMessage = "Accepted Payment"
                     rednet.send(id,l,"PaymentServer")
+                    rednet.send(highscoreServer,{category = "chips", player = accountfile.playername, score = accountfile.bal}, "highscore")
                 else
                     l.status = "ReplyAuth"
                     l.handler = datar.computer
@@ -137,6 +140,7 @@ function messageRecive()
                         array.pin = datasa.pin
                         array.bal = datasa.bal+returnAmt
                         rednet.send(id,l,"PaymentServer")
+                        rednet.send(highscoreServer,{category = "chips", player = array.playername, score = array.bal}, "highscore")
                         local accountw = fs.open("Accounts/"..datar.id,"w")
                         accountw.write(textutils.serialise(array))
                         Accountw.close()
