@@ -1433,4 +1433,31 @@ function Chess.GetMoves(piece, Layout, moveHistory)
     return ValidMoves
 end
 
+function Chess.PawnReachedOtherSide(piece,Layout)
+    if piece.color == "W" and piece.y == 1 then
+        local init = 0
+        for key, value in pairs(Layout) do
+            if value.pieceName == "queen" and piece.color == value.color then
+                init = math.max(init,value.init)
+            end
+        end
+        piece.pieceName = "queen"
+        piece.init = init
+    elseif piece.color == "B" and piece.y == 8 then
+        local init = 0
+        for key, value in pairs(Layout) do
+            if value.pieceName == "queen" and piece.color == value.color then
+                init = math.max(init,value.init)
+            end
+        end
+        piece.pieceName = "queen"
+        piece.init = init
+    else
+        piece = nil
+    end
+    return piece
+end
+
+
+
 return Chess

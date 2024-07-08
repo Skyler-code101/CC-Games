@@ -28,6 +28,10 @@ Config.Sound = true
 Config.Timer = false
 Config.TimerTime = 60
 
+local AccountIDS = {}
+
+local Record = {}
+
 function a()
     --display
     while true do
@@ -148,6 +152,8 @@ function b()
         SavedValues.originalSpaceX = x
         SavedValues.originalSpaceY = y
         local oldPiece, oldIndex = chessAlgorithm.getPieceAt(x,y, pieceLayout)
+        SavedValues.originalPieceName = oldPiece.pieceName
+        SavedValues.originalPieceColor = oldPiece.color      
         if oldPiece.color == playersturn and oldPiece.pieceName ~= "none" then
             print("Piece Interacted : "..oldPiece.pieceName..", "..oldPiece.color..", "..oldPiece.init)
             selectedpieceobj = oldPiece
@@ -185,10 +191,14 @@ function b()
                 if move.captures  then
                     cx = move.captures.x
                     cy = move.captures.y
+                    SavedValues.captures.y = move.captures.y
+                    SavedValues.captures.x = move.captures.xw
+
                 else
                     cx = xt
                     cy = yt
                 end
+
                 local cPiece = chessAlgorithm.getPieceAt(cx,cy,pieceLayout)
                 --Swap piece positions
                 newPiece.x = oldPiece.x
@@ -204,12 +214,19 @@ function b()
                         speaker.playSound("entity.generic.explode",.5)
                     end
                 end
-
+                local queenPiece = chessAlgorithm.PawnReachedOtherSide(oldPiece,pieceLayout)
+                if queenPiece ~= nil then
+                    oldPiece = queenPiece
+                    print("Pawn Premoted")
+                    if speaker and Config.Sound == true then
+                        speaker.playSound("entity.player.levelup",1)
+                    end
+                end
                 selectedpiece = ""
                 selectedpieceobj = nil
                 pieceValidMoves = {}
                 takeablepieces = {}
-                printOnPrinter(#Moves..": "..oldPiece.pieceName.." ("..oldPiece.color..") "..chessAlgorithm.trueLocation(SavedValues.originalSpaceX,SavedValues.originalSpaceY)..">"..chessAlgorithm.trueLocation(SavedValues.newSpaceX,SavedValues.newSpaceY))
+                
                 printMove(oldPiece.pieceName,oldPiece.color,SavedValues.originalSpaceX,SavedValues.originalSpaceY,SavedValues.newSpaceX,SavedValues.newSpaceY)
                 if playersturn == "W" then
                     playersturn = "B"
@@ -223,7 +240,27 @@ function b()
             elseif oldPiece.color ~= playersturn and oldPiece.pieceName == "king" then
                 if oldPiece.x == x and oldPiece.y == y then
                     print("CheckMate")
+                    local filesend = {}
+                    filesend.method = "Input"
+                    filesend.game = "Chess"
+                    filesend.record = Moves
+                    if BetB then
+                        filesend.BetAmount = {}
+                        filesend.BetAmount.B = BetB
+                        filesend.BetAmount.W = BetW
+                        filesend.BetAmount.Total = BetW + BetB
+                        filesend.AccountIDS = AccountIDS
+                    end
                     printOnPrinter("Checkmate "..playersturn.." Wins")
+                    rednet.send(rednet.lookup("RecordService","RecordService"),filesend,"RecordService")
+                    local id, message
+                    repeat
+                        id, message = rednet.receive("RecordService")
+                    until message.reply == "Chess" and message.success == true
+                    printOnPrinter("Record ID = "..message.RecordID)
+                    if BetB then
+                        printOnPrinter("Chips To Winner = "..BetB + BetW.."C")
+                    end
                     
                     Moves = {}
                     printer.endPage()
@@ -307,9 +344,9 @@ function e()
             local WDisk = WDiskraw.getMountPath()
             local BDisk = BDiskraw.getMountPath()
             print("Bet Value:\n  Black")
-            local BetB = tonumber(read())
+            BetB = tonumber(read())
             print("  White")
-            local BetW = tonumber(read())
+            BetW = tonumber(read())
             print("Pulling Bets")
             
             local file = fs.open(fs.combine(BDisk,"Ecard/Data"),"r")
@@ -322,6 +359,7 @@ function e()
             sender.coms = 3210
             local sendmsg = {}
             sendmsg.status = "charge"
+            AccountIDS.White = dataW.fulllink
             sendmsg.id = dataW.fulllink
             sendmsg.charge = BetW
             sender.message = sendmsg
@@ -337,6 +375,7 @@ function e()
                 sender.coms = 3210
                 local sendmsg = {}
                 sendmsg.status = "charge"
+                AccountIDS.Black = dataB.fulllink
                 sendmsg.id = dataB.fulllink
                 sendmsg.charge = BetB
                 sender.message = sendmsg
