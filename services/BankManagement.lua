@@ -4,69 +4,6 @@ peripheral.find("modem", rednet.open)
 
 local highscoreServer = rednet.lookup("highscore","highscoreService")
 local completion = require "cc.completion"
-function a()
-    local sellerdata = {}
-    print("Seller Name: ")
-    sellerdata.name = read()
-    print("Sellers ComputerID:")
-    sellerdata.computerID = read()
-    local accountr = fs.open("Sellers/"..sellerdata.computerID,"w")
-    sellerdata.direct = tonumber(read(nil,nil,function(text) return completion.choice(text, fs.list("Accounts/")) end))
-    print("Logging Seller")
-
-    accountr.write(textutils.serialise(sellerdata))
-
-    startup()
-end
-function b()
-    print("Loading Accounts...")
-    local list = fs.list("Accounts/")
-    print("ECard ID :")
-    local id = read(nil,nil,function(text) return completion.choice(text, fs.list("Accounts/")) end)
-    print("Finding Account...")
-    
-    if fs.exists("Accounts/"..id) and id ~= "" and id ~= nil then
-        print("Account Found Reading Data...")
-        local accountr = fs.open("Accounts/"..id,"r")
-        local data = textutils.unserialise(accountr.readAll())
-        accountr.close()
-        print("Data : \n  Holder: "..data.playername.."\n  Pin: "..data.pin.."\n  Balance: "..data.bal.."\n-----------")
-        print("What Would You Like To Do? \n 1 : Change Pin \n 2 : Change Balance \n")
-        func = read()
-        if func == "1" then
-            print("Current pin: "..data.pin.."\n")
-            local newpin = read()
-            data.pin = tonumber(newpin)
-            Accountw = fs.open("Accounts/"..id,"w")
-            Accountw.write(textutils.serialise(data))
-            Accountw.close()
-        elseif func == "2" then
-            print("Current Balance: "..data.bal.."\n")
-            Newbal = read()
-            data.bal = tonumber(Newbal)
-        Accountw = fs.open("Accounts/"..id,"w")
-            Accountw.write(textutils.serialise(data))
-            Accountw.close()
-        else
-            startup()
-        end
-    else
-        print("Account Not Found")
-    end
-    startup()
-end
-function startup()
-    print("Func#")
-    local func = read()
-    if func == "1" then
-        a()
-    elseif func == "2" then
-        b()
-    else
-        startup()
-    end
-end
-
 function messageRecive()
     while true do
     local id, message = rednet.receive("PaymentServer")
@@ -173,4 +110,4 @@ end
     end
     
 end
-parallel.waitForAll(startup,messageRecive)
+parallel.waitForAll(messageRecive)
