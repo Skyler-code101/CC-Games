@@ -408,6 +408,8 @@ function e()
                 os.pullEvent("key")
                 print("Game Starting")
                 printer.newPage()
+                line = 1
+                printer.setCursorPos(1,1)
                 printOnPrinter("Bets: W:"..BetW.." B:"..BetB)
                 GameStarted = true
                 print("Game Running")
@@ -422,6 +424,8 @@ function e()
             print("Game Ready Press Any Button To start")
             os.pullEvent("key")
             printer.newPage()
+            printer.setCursorPos(1,1)
+            line = 1
             printOnPrinter("No Bets")
             print("Game Starting")
             GameStarted = true

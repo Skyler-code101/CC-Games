@@ -83,6 +83,7 @@ function startup()
                 sendmsg.charge = SimFile.BetAmount.Total
                 sender.message = sendmsg
                 rednet.send(575,sender,"PaymentServer") 
+                local id, message = rednet.receive("PaymentServer")
                 if message.status =="ReplyAuth" and message.ReplyMessage == "InvalidAmt" then
                     print("Error InvalidAmt")
                 elseif message.status =="ReplyAuth" and message.ReplyMessage == "Accepted Payment" then
@@ -97,6 +98,7 @@ function startup()
                 sendmsg.charge = SimFile.BetAmount.Total
                 sender.message = sendmsg
                 rednet.send(575,sender,"PaymentServer") 
+                local id, message = rednet.receive("PaymentServer")
                 if message.status =="ReplyAuth" and message.ReplyMessage == "InvalidAmt" then
                     print("Error InvalidAmt")
                 elseif message.status =="ReplyAuth" and message.ReplyMessage == "Accepted Payment" then
@@ -111,6 +113,7 @@ function startup()
                 sendmsg.charge = SimFile.BetAmount.W
                 sender.message = sendmsg
                 rednet.send(575,sender,"PaymentServer") 
+                local id, message = rednet.receive("PaymentServer")
                 if message.status =="ReplyAuth" and message.ReplyMessage == "InvalidAmt" then
                     print("Error InvalidAmt")
                 elseif message.status =="ReplyAuth" and message.ReplyMessage == "Accepted Payment" then
@@ -124,11 +127,15 @@ function startup()
                 sendmsg.charge = SimFile.BetAmount.B
                 sender.message = sendmsg
                 rednet.send(575,sender,"PaymentServer") 
+                local id, message = rednet.receive("PaymentServer")
                 if message.status =="ReplyAuth" and message.ReplyMessage == "InvalidAmt" then
                     print("Error InvalidAmt")
                 elseif message.status =="ReplyAuth" and message.ReplyMessage == "Accepted Payment" then
                     print("Black successfully Given Draw")
                 end
+                term.clear()
+                SimStarted = false
+                Validizeable = false
             end
         end
         sleep(.1)
@@ -172,6 +179,7 @@ function Sim()
                 end
                 if key == #SimFile.record and Validizeable == false and SimFile.BetAmount then
                     Validizeable = true
+                    SimStarted = false
                 end
             end
         end

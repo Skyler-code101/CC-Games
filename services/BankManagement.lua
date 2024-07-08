@@ -80,7 +80,7 @@ function messageRecive()
                         rednet.send(highscoreServer,{category = "chips", player = array.playername, score = array.bal}, "highscore")
                         local accountw = fs.open("Accounts/"..datar.id,"w")
                         accountw.write(textutils.serialise(array))
-                        Accountw.close()
+                        accountw.close()
                     
                 else
                     l.status = "ReplyAuth"
