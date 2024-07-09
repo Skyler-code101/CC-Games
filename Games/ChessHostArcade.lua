@@ -169,6 +169,7 @@ function b()
                 local newPiece, newIndex = chessAlgorithm.getPieceAt(xt, yt, pieceLayout)
                 SavedValues.newSpacePieceName = newPiece.pieceName
                 SavedValues.newSpaceInit = newPiece.init
+                SavedValues.newSpaceColor = newPiece.color
                 local move = pieceValidMoves[newIndex] or takeablepieces[newIndex]
                 --Remove invalid moves
                 if newPiece == oldPiece then
@@ -295,6 +296,7 @@ function c()
                             valuel.y = Moves[#Moves].newSpaceY
                             valuel.pieceName = Moves[#Moves].newSpacePieceName
                             valuel.init = Moves[#Moves].newSpaceInit
+                            valuel.color =Moves[#Moves].newSpaceColor
                             table.remove(Moves,#Moves)
                             if playersturn == "W" then
                                 playersturn = "B"

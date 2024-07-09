@@ -18,7 +18,7 @@ function listen()
             fileData.AccountIDS = message.AccountIDS
             file.write(textutils.serialise(fileData))
             file.close()
-            print("Input Received\nComputer: "..tostring(id).."\n"..tostring(#message.record).." Record Entrys\nBetAmount: "..message.BetAmount.Total.."\n\n Registered As Entry: "..tostring(RecordID))
+            print("Input Received\nComputer: "..tostring(id).."\n"..tostring(#message.record).." Record Entrys\n\n Registered As Entry: "..tostring(RecordID).."\n")
             local sender = {}
             sender.reply = "Chess"
             sender.success = true
@@ -36,7 +36,7 @@ function listen()
                     sender.success = true
                     sender.record = fileData
                     rednet.send(id,sender,"RecordService")
-                    print("Read Received\nComputer: "..tostring(id).."\nAsked Record: "..tostring(message.RecordID).."\n\n Sent "..tostring(#fileData.record).." Record Entrys")
+                    print("Read Received\nComputer: "..tostring(id).."\nAsked Record: "..tostring(message.RecordID).."\n\n Sent "..tostring(#fileData.record).." Record Entrys\n")
                 else
                     local sender = {}
                     sender.reply = "Chess"

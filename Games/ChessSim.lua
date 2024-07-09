@@ -19,7 +19,7 @@ function display()
     --display
     while true do
         if SimStarted == true then
-            gamemonitor.setBackgroundColor(colors.blue)
+            gamemonitor.setBackgroundColor(colors.purple)
         gamemonitor.clear()
         gamemonitor.setTextScale(.5)
         gamemonitor.setCursorPos(1,1)
@@ -29,8 +29,18 @@ function display()
             gamemonitor.setTextColor(c)
             gamemonitor.write(pi)
         end
-        gamemonitor.setCursorPos(13,10)
+        
+        gamemonitor.setTextColor(colors.red)
+        gamemonitor.setCursorPos(1,10)
         gamemonitor.write(frame)
+        if SimFile.BetAmount ~= nil then
+            gamemonitor.setTextColor(colors.green)
+            gamemonitor.setCursorPos(10,2)
+            gamemonitor.write(SimFile.BetAmount.B)
+            gamemonitor.setCursorPos(10,7)
+            gamemonitor.write(SimFile.BetAmount.W)
+        end
+
         else
             gamemonitor.clear()
             gamemonitor.setTextScale(.5)
@@ -49,7 +59,9 @@ end
 
 function startup()
     while true do
-        if SimStarted ~= true then
+        if SimStarted == false and Validizeable == false then
+            term.clear()
+            term.setCursorPos(1,1)
             print("Record ID")
             local ID = tonumber(read())
             local sender = {}
@@ -62,6 +74,7 @@ function startup()
                 id, message = rednet.receive("RecordService")
             until message.reply == "Chess" and message.success == true
             SimFile = message.record
+
             AccountIDS = message.record.AccountIDS
             print("Grabed Record")
             SimStarted = true
@@ -89,6 +102,8 @@ function startup()
                 elseif message.status =="ReplyAuth" and message.ReplyMessage == "Accepted Payment" then
                     print("Winner successfully Given Winnings")
                 end
+                SimStarted = false
+                Validizeable = false
             elseif promt == "W" then
                 local sender = {}
                 sender.coms = 3210
@@ -104,6 +119,8 @@ function startup()
                 elseif message.status =="ReplyAuth" and message.ReplyMessage == "Accepted Payment" then
                     print("Winner successfully Given Winnings")
                 end
+                SimStarted = false
+                Validizeable = false
             elseif promt == "D" then
                 local sender = {}
                 sender.coms = 3210
@@ -145,6 +162,7 @@ end
 function Sim()
     while true do
         if SimStarted == true then
+            frame = "0".."/"..#SimFile.record
             print("Sim Ready Click The Screen For Next Frame")
             for key, value in pairs(SimFile.record) do
                 os.pullEvent("monitor_touch")
@@ -177,7 +195,7 @@ function Sim()
                 if queenPiece ~= nil then
                     oldPiece = queenPiece
                 end
-                if key == #SimFile.record and Validizeable == false and SimFile.BetAmount then
+                if key >= #SimFile.record and Validizeable == false then
                     Validizeable = true
                     SimStarted = false
                 end

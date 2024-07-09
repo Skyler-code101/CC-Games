@@ -33,6 +33,8 @@ function Chess.Identify(piece)
             color = colors.white
         elseif piece.color == "B" then
             color = colors.gray
+        else
+            color = colors.green
         end
         pieceIcon = "P"
     elseif piece.pieceName == "rook" then
@@ -40,6 +42,8 @@ function Chess.Identify(piece)
             color = colors.white
         elseif piece.color == "B" then
             color = colors.gray
+        else
+            color = colors.green
         end
         pieceIcon = "R"
     elseif piece.pieceName == "knight" then
@@ -47,6 +51,8 @@ function Chess.Identify(piece)
             color = colors.white
         elseif piece.color == "B" then
             color = colors.gray
+        else
+            color = colors.green
         end
         pieceIcon = "N"
     elseif piece.pieceName == "bishop" then
@@ -54,6 +60,8 @@ function Chess.Identify(piece)
             color = colors.white
         elseif piece.color == "B" then
             color = colors.gray
+        else
+            color = colors.green
         end
         pieceIcon = "B"
     elseif piece.pieceName == "queen" then
@@ -61,6 +69,8 @@ function Chess.Identify(piece)
             color = colors.white
         elseif piece.color == "B" then
             color = colors.gray
+        else
+            color = colors.green
         end
         pieceIcon = "Q"
     elseif piece.pieceName == "king" then
@@ -68,11 +78,16 @@ function Chess.Identify(piece)
             color = colors.white
         elseif piece.color == "B" then
             color = colors.gray
+        else
+            color = colors.green
         end
         pieceIcon = "K"
     elseif piece.pieceName == "none" then
         color = colors.red
         pieceIcon = "#"
+    else
+        color = colors.green
+        pieceIcon = "@"
     end
     return color, pieceIcon
 end
