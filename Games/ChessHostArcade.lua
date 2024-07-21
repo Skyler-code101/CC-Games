@@ -362,6 +362,7 @@ function e()
             file.close()
             local sender = {}
             sender.coms = 3210
+            sender.game = "Chess"
             local sendmsg = {}
             sendmsg.status = "charge"
             AccountIDS.White = dataW.fulllink
@@ -378,6 +379,7 @@ function e()
 
                 local sender = {}
                 sender.coms = 3210
+                sender.game = "Chess"
                 local sendmsg = {}
                 sendmsg.status = "charge"
                 AccountIDS.Black = dataB.fulllink
@@ -390,6 +392,7 @@ function e()
                     print("Insufficient Chips, Black")
                     local sender = {}
                     sender.coms = 3210
+                    sender.game = "Chess"
                     local sendmsg = {}
                     sendmsg.status = "charge"
                     sendmsg.id = dataW.fulllink

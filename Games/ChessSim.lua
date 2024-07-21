@@ -90,6 +90,7 @@ function startup()
             if promt == "B" then
                 local sender = {}
                 sender.coms = 3210
+                sender.game = "Chess"
                 local sendmsg = {}
                 sendmsg.status = "sell"
                 sendmsg.id = AccountIDS.Black
@@ -107,6 +108,7 @@ function startup()
             elseif promt == "W" then
                 local sender = {}
                 sender.coms = 3210
+                sender.game = "Chess"
                 local sendmsg = {}
                 sendmsg.status = "sell"
                 sendmsg.id = AccountIDS.White
@@ -124,6 +126,7 @@ function startup()
             elseif promt == "D" then
                 local sender = {}
                 sender.coms = 3210
+                sender.game = "Chess"
                 local sendmsg = {}
                 sendmsg.status = "sell"
                 sendmsg.id = AccountIDS.White
@@ -138,6 +141,7 @@ function startup()
                 end
                 local sender = {}
                 sender.coms = 3210
+                sender.game = "Chess"
                 local sendmsg = {}
                 sendmsg.status = "sell"
                 sendmsg.id = AccountIDS.Black

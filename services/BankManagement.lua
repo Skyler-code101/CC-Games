@@ -4,6 +4,8 @@ peripheral.find("modem", rednet.open)
 
 local highscoreServer = rednet.lookup("highscore","highscoreService")
 local completion = require "cc.completion"
+
+local ChatClient = require("ChatClient")
 function messageRecive()
     while true do
     local id, message = rednet.receive("PaymentServer")
@@ -29,7 +31,7 @@ function messageRecive()
             l.fulllink = dataw.fulllink
             rednet.send(id,l,"PaymentServer")
             rednet.send(highscoreServer,{category = "chips", player = datar.playername, score = 10}, "highscore")
-            
+            ChatClient.sendMessageToPlayer(datar.playername, 1,{senderName = "&5Star &bArcade&r",message = "Your Account Has Been Created"})
         elseif datar.status == "charge"  then
             local datae = {}
             local accountr = fs.open("Accounts/"..datar.id,"r")
@@ -47,6 +49,7 @@ function messageRecive()
                     l.ReplyMessage = "Accepted Payment"
                     rednet.send(id,l,"PaymentServer")
                     rednet.send(highscoreServer,{category = "chips", player = accountfile.playername, score = accountfile.bal}, "highscore")
+                    ChatClient.sendMessageToPlayer(accountfile.playername, 1,{senderName = "&5Star &bArcade&r",message = "You Have Been Charged &2"..tostring(datar.charge).."&r Chips"})
                 else
                     l.status = "ReplyAuth"
                     l.handler = datar.computer
@@ -81,6 +84,8 @@ function messageRecive()
                         local accountw = fs.open("Accounts/"..datar.id,"w")
                         accountw.write(textutils.serialise(array))
                         accountw.close()
+                        ChatClient.sendMessageToPlayer(datasa.playername, 1,{senderName = "&5Star &bArcade&r",message = "You Have Given &2"..tostring(datar.charge).."&r Chips"})
+
                     
                 else
                     l.status = "ReplyAuth"
@@ -110,4 +115,5 @@ end
     end
     
 end
+
 parallel.waitForAll(messageRecive)
