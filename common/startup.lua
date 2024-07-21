@@ -72,7 +72,7 @@ else
                 else
                     if machineConfig.isProduction then
                         ---@type TraceReport
-                        local trace = {type="trace", computer=os.getComputerID(), isStartup = true, timestamp=os.time("utc"), traceback = filter}
+                        local trace = {type="trace", computer=os.getComputerID(), isStartup = true, timestamp=os.epoch("utc"), traceback = filter}
                         rednet.send(machineConfig.errorReportingServiceId, trace, "errorReporting")
                         os.reboot()
                     else
@@ -82,7 +82,7 @@ else
                 if coroutine.status(startupRoutine) == "dead" then
                     if machineConfig.isProduction then
                         ---@type EndedReport
-                        local trace = {type="programEnded", computer=os.getComputerID(), timestamp=os.time("utc")}
+                        local trace = {type="programEnded", computer=os.getComputerID(), timestamp=os.epoch("utc")}
                         rednet.send(machineConfig.errorReportingServiceId, trace, "errorReporting")
                         os.reboot()
                     else
@@ -103,6 +103,8 @@ else
                         saveMachineConfig()
                     elseif message.type == "reboot" then
                         os.reboot()
+                    elseif message.type == "getMachineConfig" and type(message.forId) == "number" and type(message.forUser) == "string" then
+                        rednet.send(sender, {type="machineConfig",value=machineConfig, forId = message.forId, forUser = message.forUser}, "remoteManagement")
                     end
                 end
             end
@@ -114,5 +116,3 @@ else
         parallel.waitForAny(doStartupThread)
     end
 end
-
-window.create()

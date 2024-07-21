@@ -8,8 +8,12 @@
 
 local aead = require("ccryptolib.aead")
 local random = require "ccryptolib.random"
+local TimeoutMap = require "TimeoutMap"
 local key
 local user
+
+local rednatAddress = 589
+local remoteManagementServer = rednatAddress + 584 * rednet.MAX_ID_CHANNELS
 
 do
     local rh = fs.open(".key", "r")
@@ -27,8 +31,6 @@ end
 random.initWithTiming()
 
 peripheral.find("modem", rednet.open)
-local remoteManagementServer = rednet.lookup("arcadeRemoteManagement", "arcadeRemoteManagementService") or
-error("unable to locate management service", 0)
 
 local function sendMessage(message)
     local nonce = random.random(12)
@@ -41,6 +43,14 @@ local function sendMessageToComputer(id, message)
     sendMessage({ t = "c", i = id, m = message, ts = os.epoch("utc") })
 end
 
+local function requestMachineConfig(id)
+    -- forId is automatically added after NAT
+    sendMessageToComputer(id, { type = "getMachineConfig" , forUser = user})
+end
+local function sendRebootRequest(id)
+    -- forId is automatically added after NAT
+    sendMessageToComputer(id, { type = "reboot" })
+end
 
 local function setMachineConfigValue(id, key, value)
     sendMessageToComputer(id, { type = "setMachineConfigValue", key = key, value = value })
@@ -68,10 +78,11 @@ local function setHeaderText(text)
 end
 ---An array of options to print
 ---@param win Window
----@param options ({type: "yesno", yes: string, no: string, key: string, name: string, value: string})[]
-local function printOptions(win, options)
+---@param options ({type: "yesno", yes: string, no: string, key: string, name: string}|{type: "button", label: string})[]
+local function printOptions(win, options, data)
     for i, v in pairs(options) do
         if v.type == "yesno" then
+            local curVal = data[v.key]
             win.setCursorPos(1, i)
             win.setBackgroundColor(colors.black)
             win.setTextColor(colors.white)
@@ -84,7 +95,7 @@ local function printOptions(win, options)
                 win.setBackgroundColor(colors.black)
                 win.write(" ")
             end
-            win.setBackgroundColor(colors.green)
+            win.setBackgroundColor(curVal and colors.green or colors.gray)
             win.write(string.rep(" ", pad))
             win.write(v.yes)
             win.write(string.rep(" ", pad))
@@ -92,7 +103,7 @@ local function printOptions(win, options)
                 win.setBackgroundColor(colors.black)
                 win.write(" ")
             end
-            win.setBackgroundColor(colors.red)
+            win.setBackgroundColor(curVal and colors.gray or colors.red)
             win.write(string.rep(" ", pad))
             win.write(v.no)
             win.write(string.rep(" ", pad))
@@ -100,12 +111,17 @@ local function printOptions(win, options)
                 win.setBackgroundColor(colors.black)
                 win.write(" ")
             end
+        elseif v.type == "button" then
+            win.setCursorPos(1,i)
+            win.setBackgroundColor(colors.orange)
+            win.setTextColor(colors.black)
+            win.write(v.label)
         end
     end
 end
 ---@param win Window
 ---@param options ({type: "yesno", yes: string, no: string, key: string, name: string, value: string})[]
----@return string? key
+---@return string? type
 ---@return any value
 local function handleOptionClick(win, options, x, y)
     local w, h = win.getSize()
@@ -115,17 +131,20 @@ local function handleOptionClick(win, options, x, y)
             local keyLength = string.len(option.name)
             local valueLength = w - keyLength
             local padLength = valueLength - string.len(option.yes) - string.len(option.no)
-            local left = keyLength + 1
+            local pad = math.floor(padLength /4)
+            local left = keyLength+1
             local right = w
             if padLength % 4 >= 2 then
                 left = left + 1
                 right = right - 1
             end
-            if x> left and x < left+string.len(option.yes) then
-                return option.key, true
-            elseif x < right and x > right - string.len(option.no) then
-                return option.key, false
+            if x>= left and x < left+string.len(option.yes)+2*pad then
+                return "yesno", {key=option.key, value= true}
+            elseif x <= right and x > right - string.len(option.no)-2*pad then
+                return "yesno", {key = option.key, value = false}
             end
+        elseif option.type == "button" then
+            return "button", {label=option.label}
         end
     else
         return nil
@@ -207,6 +226,11 @@ local OverviewState = {
         return
     end,
 }
+local computerOptions = {
+    { type = "yesno", yes = "true", no = "false", key = "isProduction", name = "isProduction:"},
+    { type = "button", label = "reboot"}
+}
+
 registerState(States.OVERVIEW, OverviewState)
 ---@type ApplicationState
 local ComputerViewState = {
@@ -219,15 +243,22 @@ local ComputerViewState = {
     initialize = function(state)
         local computerWindow = state.window
         printOptions(computerWindow,
-            { { type = "yesno", yes = "true", no = "false", key = "isProduction", name = "isProduction:", value = true } })
+            computerOptions, {})
     end,
     onOpen = function(state)
+        state.data.machineConfig = {}
+        requestMachineConfig(state.data.id)
         return
     end,
     handleClick = function(state, button, x, y)
-        local key, value = handleOptionClick(state.window, { { type = "yesno", yes = "true", no = "false", key = "isProduction", name = "isProduction:", value = true } }, x, y)
-        if key then
-            setMachineConfigValue(state.data.id, key, value)
+        local type, data = handleOptionClick(state.window, computerOptions, x, y)
+        if type == "yesno" then
+            setMachineConfigValue(state.data.id, data.key, data.value)
+            requestMachineConfig(state.data.id)
+        elseif type == "button" then
+            if data.label == "reboot" then
+                sendRebootRequest(state.data.id)
+            end
         end
         return
     end,
@@ -242,6 +273,13 @@ local ComputerViewState = {
     end,
     restoreState = function(state, data)
         state.data.id = data.id
+    end,
+    handleNetworkMessage = function (state, data)
+        if data.type == "machineConfig" and data.id == state.data.id then
+            state.data.computerConfig = data.value
+            printOptions(state.window,
+                computerOptions, state.data.computerConfig)
+        end
     end
 }
 registerState(States.COMPUTER_VIEW, ComputerViewState)
@@ -359,6 +397,7 @@ local function handleHeaderClick(button, x, y)
                 if x < 4 then
                     popState()
                 else
+                    ComputerViewState.data.id = 580
                     switchState(States.COMPUTER_VIEW)
                 end
             else
@@ -383,6 +422,9 @@ local function handleKeyPress(key, is_held)
 end
 
 local function ApplicationThread()
+    local nonces = TimeoutMap:new(function (key, value)
+        return value.ts + 2000 < os.epoch('utc')
+    end)
     while true do
         local eventData = table.pack(os.pullEvent())
         if eventData[1] == "mouse_click" then
@@ -399,7 +441,29 @@ local function ApplicationThread()
         elseif eventData[1] == "char" then
             local state = getCurrentState()
             state.handleChar(state, eventData[2])
+        elseif eventData[1] == "rednet_message" then
+            local sender, message, protocol = table.unpack(eventData, 2)
+            if type(message) == "table" then
+                if protocol == "arcadeRemoteManagement" and type(message.ciphertext) == "string" and type(message.tag) == "string" and string.len(message.tag) == 16 and type(message.nonce) == "string" and string.len(message.nonce) == 12 and type(message.user) == "string" and message.user == user and not nonces:contains(message.nonce) then
+                    local plaintext = aead.decrypt(key, message.nonce, message.tag, message.ciphertext, user..":frommanagement", 20)
+                    if plaintext then
+                        local decoded = textutils.unserialise(plaintext)
+                        if decoded then
+                            if type(decoded) == "table" and type(decoded.ts) == "number" then
+                                local now = os.epoch("utc")
+                                if decoded.ts > now - 1000 and decoded.ts < now + 500 then
+                                    nonces:set(message.nonce, decoded.ts)
+                                    if type(decoded.m) == "table" and decoded.m.type == "machineConfig" and type(decoded.m.id) == "number" then
+                                        ComputerViewState.handleNetworkMessage(ComputerViewState, decoded.m)
+                                    end
+                                end
+                            end
+                        end
+                    end
+                end
+            end
         end
+        nonces:cull()
     end
 end
 
